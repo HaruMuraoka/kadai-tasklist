@@ -15,11 +15,22 @@ class TasksController extends Controller
      */
     public function index()
     {
-        $tasks =Task::all();
-        
-        return view('tasks.index', [
-            'tasks' => $tasks,
-        ]);
+        $data = [];
+        if(\Auth::check()) { 
+            
+            $user = \Auth::user();
+            
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
+            
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+             return view('tasks.index', $data);
+        }
+        else {
+             return view('welcome');
+        }
     }
 
     /**
@@ -49,12 +60,13 @@ class TasksController extends Controller
             'content' => 'required',
         ]);
         
-        $task =new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+        $request->user()->tasks()->create([
+            'status' => $request->status,
+            'content' => $request->content,
+        ]);
         
-        return redirect('/');
+        
+        return back();
     }
 
     /**
@@ -71,6 +83,7 @@ class TasksController extends Controller
             'task' => $task,
         ]);
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -118,10 +131,13 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-        $task = Task::findOrFail($id);
+        $task = \App\Task::findOrFail($id);
+         
+        if (\Auth::id() === $task->user_id) {
+            $task->delete();
+        }
         
-        $task->delete();
-        
-        return redirect('/');
+        return back();
     }
+
 }
