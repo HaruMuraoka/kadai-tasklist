@@ -100,9 +100,9 @@ class TasksController extends Controller
         $task = \App\Task::findOrFail($id);
         
         if (\Auth::id() === $task->user_id) {
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+            return view('tasks.edit', [
+                 'task' => $task,
+            ]);
         }
         
          return redirect('/');
@@ -123,11 +123,13 @@ class TasksController extends Controller
             'content' => 'required',
         ]);
         
-        $task = Task::findOrFail($id);
+        $task = \App\Task::findOrFail($id);
+        if (\Auth::id() === $task->user_id) {
         
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+            $task->status = $request->status;
+            $task->content = $request->content;
+            $task->save();
+        }
         
         return redirect('/');
     }
